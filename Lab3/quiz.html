@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+	<script src="..\..\jquery-3.3.1.min.js"></script>
+</head>
+<body style="background-image: url('bg.jpg'); background-attachment: fixed; color: white; font-family: Brush Script MT, Brush Script Std, cursive;">
+
+	<div>
+		<h1 style="font-size: 60px; color: white; text-align: center;">Quiz Challenge</h1>
+	</div>
+
+	<section>
+		<table style="margin: auto;">
+			<tr>
+	<!-- 			<td id="mon" width="400px">
+					<div hidden="true" align="center" id="attack-mon">150</div>
+					<img class="monsters" src="monster2.png" width="350px" height="300px"></img>
+				</td>
+				<td id="vs" width="200px">
+					<img src="vs.png" width="150px"></img>
+				</td> -->
+<!-- 				<td hidden="true" id="ch" width="600px">
+					<div hidden="true" align="center" id="attack-ch">150</div>
+					<img src="f3.png" width="300px" height="250px">
+				</td> -->
+<!-- 				<td hidden="true" id="ch" width="600px" style="margin: 0px auto;">
+					<div style="width: 50px; height: 400px;"></div>
+				</td> -->
+				<td hidden="true" id="quiz">
+					<h2 style="font-size: 40px; width: 400px">Timer</h2>
+					<section align="center" id=form>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<h2 id="start" style="background-color: lightblue; text-align: center; width: 150px;">Start Quiz</h2>
+					</section>					
+				</td>
+			</tr>
+		</table>
+		
+	</section>
+	<section align="center" style="margin: auto;">
+		<br><br><br><br><br><br>
+		<div id='menu' align="center">
+			<h2>Selected Number of Quiz</h2>
+			<br>
+			<h3 class="q-num" id="blank1" onclick="menuClick('blank1')">5</h3>
+			<br>
+			<h3 class="q-num" id="blank2" onclick="menuClick('blank2')">12</h3>
+		</div>
+	</section>
+
+	<script>
+		var quests = [];
+		var take_quests = [];
+		var current_q = -1;
+		var answer = 0;
+		var quest_status = true;
+		// var timeleft = 15;
+		var questimer;
+		var limited = 0;
+
+		$(document).ready(function(){
+			console.log("blah");
+			$.ajax({
+				url: "question.json",
+				type: "GET",
+				data: "jsonObj",
+				success:function(data){
+					console.log(data);
+					for (let i = 0; i < data.length; i++) {
+						quests[i] = data[i];
+					}
+					// random question
+					current_q = Math.floor(Math.random() * quests.length);
+					take_quests[take_quests.length] = current_q;
+					// loadForm();
+
+					// $('#quest').html("No More Quest");
+				}
+			});
+		});
+
+		$('#menu').click(function(){
+			// $('#ch').show();
+			$('#quiz').show();
+			$('#menu').hide();
+		});
+
+		$('#start').click(function(){
+			loadForm();
+		});
+
+		function menuClick(id_elem){
+			let temp = $('#'+id_elem).html();
+			console.log(temp);
+			if (temp == 'Play Again'){
+				take_quests = [];
+				answer = 0;
+				$('#menu > h2').html('Selected Number of Quiz');
+				$('#blank1').html(5);
+				$('#blank2').html(12);
+			}
+			else {
+				limited = temp;
+			}
+		}
+
+		function timeelapse(){
+			let timeleft = 16;
+      		questimer = setInterval(function () {
+        		timeleft--;
+        		$('h2').html('Timer:' + timeleft);
+        		$('h2').css("background-color","red");
+        		$('h2').css("width", (timeleft*400/15));
+        		if (timeleft <= 0) {
+        			answer += 0;
+					newQuest();
+        		}
+      		}, 1000);
+		}
+
+		function loadForm(){
+			// get number of choice from question
+			let c = quests[current_q]["quest-type"];
+			// timeleft = 16;
+			clearInterval(questimer);
+			timeelapse();
+			// load form for choice
+			$('#form').load('question_form.html #form' + c + 'C', function(){
+				if (c == 'QP'){
+					let quest_detail = quests[current_q]["quest"].split('-');
+					$('#quest-pic').attr('src', quest_detail[0]);
+					$('#quest').html(quest_detail[1]);
+				}
+				// change data in form
+				else{
+					$('#quest').html(quests[current_q]["quest"]);
+				}
+
+				let choices = quests[current_q]["choice"].split("-");
+
+				let kept = [];
+
+				for (var i = 1; i <= choices.length; i++) {
+					let picked = -1;
+					while (true){
+						let ran = Math.floor(Math.random() * choices.length);
+						if (kept.indexOf(ran) == -1) {
+							picked = ran;
+							kept[kept.length] = picked;
+							break;
+						}
+					}
+
+					let choice_detail = choices[picked].split(":");
+
+					if (c === 'CP'){
+						$('#c'+i).attr('src', choice_detail[0]);
+					}
+					
+					else{
+						$('#c'+i).html(choice_detail[0]);
+					}
+					
+					$('#c'+i).val(choice_detail[1]);
+				}
+			});
+		}
+
+		function newQuest(){
+			let next_status = false;
+			// change question
+			while (take_quests.length != limited){
+				let next_q = Math.floor(Math.random() * quests.length);
+				if (take_quests.indexOf(next_q) == -1){
+					current_q = next_q;
+					take_quests[take_quests.length] = current_q;
+					next_status = true;
+					break;
+				}
+			}	
+			if (next_status == true){
+        		// $('#ch > div').css("background-color","green");
+        		// $('#ch > div').css("height", (take_quests.length*400/quests.length));
+				loadForm();
+			}
+			// no more question
+			else {
+        		// $('#ch > div').css("background-color","green");
+        		// $('#ch > div').css("height", 400);
+				// $('#form').html("No More Question");
+				$('#quiz > h2').html('Timer');
+				$('#quiz').hide();
+				$('#menu > h2').html('Your Score: ' + answer);
+				$('#blank1').html("Play Again");
+				$('#blank2').html("");
+				$('#menu').show();
+				clearInterval(questimer);
+				// $('h2').html('');
+			}
+		}
+
+		function answerClick(choice){
+
+			
+
+			// check click next quest
+			// get answer
+			answer += parseInt($('#'+choice).val());
+			// $('#attack-mon').show(1000);
+			// $('#attack-mon').hide(1000);
+			// $('#attack-ch').delay(1000).show(1000);
+			// $('#attack-ch').hide(1000);
+			// change question
+			newQuest();
+
+			console.log(answer);
+
+		}
+	</script>
+
+	
+
+</body>
+
+<style>
+	.choices, .q-num{
+		border-radius: 10px;
+		/*border: solid white;*/
+		width: 400px;
+		font-size: 20px;
+		text-align: center;
+		font-family: Courier, monospace;
+	}
+	.choices:hover, .q-num:hover{
+		background-color: grey;
+
+	}
+
+	h2, #quest{
+		font-size: 30px;
+		font-family: Courier, monospace;
+	}
+	#form{
+		/*border: solid black;*/
+		width: 400px;
+		height: 400px;
+	}
+</style>
+
+</html>
