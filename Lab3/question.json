@@ -88,5 +88,15 @@
 		"quest" : "Which one is not MRT station",
 		"choice" : "Jatujak:0-Aree:1-Lad Prao:0",
 		"quest-type" : "3"
+	},
+	{
+		"quest" : "Justin Bieber First song",
+		"choice" : "Baby:1-Boyfriend:0-Love yourself:0-Sorry:0",
+		"quest-type" : "4"
+	},
+	{
+		"quest" : "Which Song is sing by 3 person",
+		"choice" : "Bang Bang:1-Dusk till down:0-Perfect:0",
+		"quest-type" : "3"
 	}
 ]
